@@ -5,7 +5,7 @@ import styles from '../PrisonStyles.module.css';
 import { hasRole } from '../../services/authentication';
 
 export const HealthcareOverview = () => {
-  const [prisonId, setPrisonId] = useState(null);
+  const [prisonId, setPrisonId] = useState(undefined);
   const [data, setData] = useState({ doctors: [], visits: [] });
   const [loading, setLoading] = useState(true);
 
@@ -21,8 +21,9 @@ export const HealthcareOverview = () => {
         } else {
           pid = localStorage.getItem('prison_id');
         }
-        setPrisonId(pid);
+        setPrisonId(pid ?? null);
       } catch {
+        setPrisonId(null);
         setLoading(false);
       }
     };
@@ -30,7 +31,7 @@ export const HealthcareOverview = () => {
   }, []);
 
   useEffect(() => {
-    if (prisonId === null) return;
+    if (prisonId === undefined) return;
     const doctorUrl = prisonId ? `/api/doctor/prison/${prisonId}` : '/api/doctor';
     const visitUrl = prisonId ? `/api/medical-visit/prison/${prisonId}` : '/api/medical-visit';
     Promise.all([
