@@ -72,11 +72,50 @@ export const ManagerDashboard = () => {
     return styles.green;
   };
 
-  const handleVisitAction = (visitId) => {
+  const removeFromPending = (visitId) => {
     setData((current) => ({
       ...current,
       pending_visits: (current.pending_visits || []).filter((v) => v.visit_id !== visitId),
     }));
+  };
+
+  const handleApprove = async (visitId) => {
+    try {
+      const res = await fetch(`/api/visit/${visitId}/confirm`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+        },
+        body: JSON.stringify({})
+      });
+      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+      removeFromPending(visitId);
+    } catch (error) {
+      console.error('Approve failed:', error);
+      alert('Failed to approve visit. Please try again.');
+    }
+  };
+
+  const handleReject = async (visitId) => {
+    const reason = window.prompt('Reason for rejecting this visit request:');
+    if (!reason || !reason.trim()) return;
+
+    try {
+      const res = await fetch(`/api/visit/${visitId}/reject`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+        },
+        body: JSON.stringify({ denial_reason: reason })
+      });
+      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+      removeFromPending(visitId);
+    } catch (error) {
+      console.error('Reject failed:', error);
+      alert('Failed to reject visit. Please try again.');
+    }
   };
 
   return (
@@ -130,10 +169,10 @@ export const ManagerDashboard = () => {
                       </td>
                       <td>{v.visit_date}</td>
                       <td className={styles.actions}>
-                        <button className={`${styles.btn} ${styles.btnSuccess}`} onClick={() => handleVisitAction(v.visit_id)} aria-label="Approve visit">
+                        <button className={`${styles.btn} ${styles.btnSuccess}`} onClick={() => handleApprove(v.visit_id)} aria-label="Approve visit">
                           <Check size={16} />
                         </button>
-                        <button className={`${styles.btn} ${styles.btnDanger}`} onClick={() => handleVisitAction(v.visit_id)} aria-label="Deny visit">
+                        <button className={`${styles.btn} ${styles.btnDanger}`} onClick={() => handleReject(v.visit_id)} aria-label="Deny visit">
                           <X size={16} />
                         </button>
                       </td>
