@@ -1,23 +1,34 @@
-from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
-from pydantic import EmailStr
 import os
+import logging
+import resend
+from pydantic import EmailStr
 from dotenv import load_dotenv
 
 load_dotenv()
 
-conf = ConnectionConfig(
-    MAIL_USERNAME=os.getenv("MAIL_USERNAME", "dummy_user"),
-    MAIL_PASSWORD=os.getenv("MAIL_PASSWORD", "dummy_password"),
-    MAIL_FROM=os.getenv("MAIL_FROM", "test@test.com"),
-    MAIL_PORT=int(os.getenv("MAIL_PORT", 587)),
-    MAIL_SERVER=os.getenv("MAIL_SERVER", "smtp.gmail.com"),
-    MAIL_STARTTLS=True,
-    MAIL_SSL_TLS=False,
-    USE_CREDENTIALS=True,
-    VALIDATE_CERTS=True
-)
+resend.api_key = os.getenv("RESEND_API_KEY", "")
 
-fm = FastMail(conf)
+# Use Resend's default testing sender if you haven't verified your own domain yet.
+# Once you verify a domain in Resend, change this to something like "no-reply@yourdomain.com"
+MAIL_FROM = os.getenv("MAIL_FROM", "onboarding@resend.dev")
+
+
+async def _send_email(to_email: str, subject: str, html: str):
+    if not resend.api_key:
+        logging.error("RESEND_API_KEY is not set — skipping email send.")
+        return
+
+    try:
+        resend.Emails.send({
+            "from": MAIL_FROM,
+            "to": [to_email],
+            "subject": subject,
+            "html": html,
+        })
+    except Exception as e:
+        logging.error(f"Failed to send email via Resend: {e}")
+        raise
+
 
 async def visit_requested_email(email: EmailStr, visitor_name: str, inmate_name: str, visit_date: str, prison_name: str):
     html = f"""
@@ -29,15 +40,8 @@ async def visit_requested_email(email: EmailStr, visitor_name: str, inmate_name:
     <p>Best regards,</p>
     <p>{prison_name} Administration</p>
     """
+    await _send_email(email, "Visit Requested Successfully", html)
 
-    message = MessageSchema(
-        subject="Visit Requested Successfully",
-        recipients=[email],
-        body=html,
-        subtype=MessageType.html
-    )
-
-    await fm.send_message(message)
 
 async def visit_confirmed_email(email: EmailStr, visitor_name: str, inmate_name: str, visit_date: str, visit_time: str, prison_name: str):
     html = f"""
@@ -56,15 +60,8 @@ async def visit_confirmed_email(email: EmailStr, visitor_name: str, inmate_name:
     <p>Best regards,</p>
     <p>{prison_name} Administration</p>
     """
+    await _send_email(email, "Visit Confirmed", html)
 
-    message = MessageSchema(
-        subject="Visit Confirmed",
-        recipients=[email],
-        body=html,
-        subtype=MessageType.html
-    )
-
-    await fm.send_message(message)
 
 async def visit_rejected_email(email: EmailStr, visitor_name: str, inmate_name: str, prison_name: str, reason: str = ""):
     reason_html = f"<p><strong>Reason:</strong> {reason}</p>" if reason else ""
@@ -79,12 +76,4 @@ async def visit_rejected_email(email: EmailStr, visitor_name: str, inmate_name: 
     <p>Best regards,</p>
     <p>{prison_name} Administration</p>
     """
-
-    message = MessageSchema(
-        subject="Visit Rejected",
-        recipients=[email],
-        body=html,
-        subtype=MessageType.html
-    )
-
-    await fm.send_message(message)
+    await _send_email(email, "Visit Rejected", html)
