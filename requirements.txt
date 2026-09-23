@@ -17,3 +17,4 @@ joblib
 scikit-learn
 xgboost
 resend
+requests

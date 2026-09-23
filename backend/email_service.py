@@ -1,32 +1,43 @@
 import os
 import logging
-import resend
+import requests
 from pydantic import EmailStr
 from dotenv import load_dotenv
 
 load_dotenv()
 
-resend.api_key = os.getenv("RESEND_API_KEY", "")
+BREVO_API_KEY = os.getenv("BREVO_API_KEY", "")
+BREVO_API_URL = "https://api.brevo.com/v3/smtp/email"
 
-# Use Resend's default testing sender if you haven't verified your own domain yet.
-# Once you verify a domain in Resend, change this to something like "no-reply@yourdomain.com"
-MAIL_FROM = os.getenv("MAIL_FROM", "onboarding@resend.dev")
+# Must match a verified sender in your Brevo account (Senders, Domains & Dedicated IPs > Senders)
+MAIL_FROM = os.getenv("MAIL_FROM", "cpms.project1@gmail.com")
+MAIL_FROM_NAME = os.getenv("MAIL_FROM_NAME", "CPMS")
 
 
 async def _send_email(to_email: str, subject: str, html: str):
-    if not resend.api_key:
-        logging.error("RESEND_API_KEY is not set — skipping email send.")
+    if not BREVO_API_KEY:
+        logging.error("BREVO_API_KEY is not set — skipping email send.")
         return
 
+    payload = {
+        "sender": {"name": MAIL_FROM_NAME, "email": MAIL_FROM},
+        "to": [{"email": to_email}],
+        "subject": subject,
+        "htmlContent": html,
+    }
+    headers = {
+        "accept": "application/json",
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json",
+    }
+
     try:
-        resend.Emails.send({
-            "from": MAIL_FROM,
-            "to": [to_email],
-            "subject": subject,
-            "html": html,
-        })
+        response = requests.post(BREVO_API_URL, json=payload, headers=headers, timeout=10)
+        if response.status_code >= 400:
+            logging.error(f"Brevo send failed ({response.status_code}): {response.text}")
+            response.raise_for_status()
     except Exception as e:
-        logging.error(f"Failed to send email via Resend: {e}")
+        logging.error(f"Failed to send email via Brevo: {e}")
         raise
 
 
