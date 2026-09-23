@@ -1,98 +1,87 @@
-# Prison Management System
+# CPMS Control — Prison Management System
 
-## Project Overview
-The Prison Management System is a full-stack application designed to efficiently manage and streamline prison operations. It provides an intuitive interface and a robust backend to handle various administrative tasks, including inmate records management, staff shift scheduling, incident and disciplinary action tracking, and automated inmate release processing.
+A full-stack prison management system for handling inmate records, prison logistics, healthcare, staff scheduling, disciplinary actions, visits, transfers, and AI-powered predictive analytics.
 
-## Setup and Running Instructions
+🔗 **Live Demo:** [https://cpms-control-1.onrender.com](https://cpms-control-1.onrender.com)
 
-There are two ways to set up and run the project: using the provided automated scripts, or following the manual step-by-step instructions.
+> Note: the backend runs on a free hosting tier and may take 20–30 seconds to wake up on the first request after a period of inactivity.
 
----
+## Features
 
-### Option 1: Automated Setup (Recommended)
+- **Prison & facility management** — prisons, blocks, cells, capacity tracking
+- **Inmate lifecycle** — registration, legal case tracking, sentencing, automated release on sentence completion
+- **Staff & scheduling** — officer management, shift assignment
+- **Incidents & discipline** — incident logging, disciplinary action tracking
+- **Visits system** — public visit request portal, visitor management, time-slot scheduling, email notifications on request/approval/rejection
+- **Healthcare tracking** — doctor assignments, medical visit records
+- **Transfers** — inter-prison transfer requests with approval workflow
+- **AI-powered predictions** — inmate risk assessment and recidivism scoring, prison overcrowding forecasting
+- **Role-based dashboards** — tailored views for Admins, Managers, and Officers
 
-#### 1. Run the Setup Script
-Run the automated setup script to create the virtual environment, install all dependencies (Python & Node.js), and generate a `.env` file with default values:
-- **Windows**:
-  ```cmd
-  setup.bat
-  ```
-- **macOS/Linux**:
-  ```bash
-  ./setup.sh
-  ```
+## Tech Stack
 
-#### 2. Run the Application
-Run the start script to automatically execute the release checker, start the backend server, start the frontend server, and open the app in your browser:
-- **Windows**:
-  ```cmd
-  run.bat
-  ```
-- **macOS/Linux**:
-  ```bash
-  ./run.sh
-  ```
+**Backend:** FastAPI · SQLModel · SQLite · Python
+**Frontend:** React 19 · Vite · React Router · Recharts
+**AI/ML:** scikit-learn · pandas · numpy · joblib
+**Email:** Brevo API
+**Hosting:** Render (backend + frontend)
 
----
+## Getting Started Locally
 
-### Option 2: Manual Setup
+### Prerequisites
+- Python 3.10+
+- Node.js 18+
 
-#### 1. Create a Virtual Environment
-Create a Python virtual environment to manage dependencies:
+### Setup
+
 ```bash
+# Clone the repo
+git clone https://github.com/pavly111/CPMS-Control.git
+cd CPMS-Control
+
+# Backend
 python -m venv .venv
-```
-
-#### 2. Activate the Virtual Environment
-Activate the newly created virtual environment:
-- **Windows**:
-  ```bash
-  .venv\Scripts\activate
-  ```
-- **macOS/Linux**:
-  ```bash
-  source .venv/bin/activate
-  ```
-
-#### 3. Install Requirements
-Install all the necessary Python dependencies for the project:
-```bash
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-```
-
-#### 4. Configure Environment Variables
-Create a `.env` file in the root directory and populate it with the required configuration data:
-```env
-MAIL_USERNAME=username
-MAIL_PASSWORD=**********
-MAIL_FROM=test@email.com
-MAIL_PORT=587
-MAIL_SERVER=smtp.gmail.com
-```
-
-#### 5. Initialize the Database
-Run the database initialization script to set up the necessary tables and structure:
-```bash
 python database/initialize.py
-```
 
-#### 6. Run the Release Checker
-Execute the script that checks and updates the status of inmates who are due for release:
-```bash
-python backend/check_release.py
-```
-
-#### 7. Run the Backend
-Start the backend server. Navigate to the `backend` folder and run the server application:
-```bash
 cd backend
 uvicorn main:app --reload
 ```
 
-#### 8. Run the Frontend
-Start the frontend application. Open a new terminal, navigate to the `frontend` folder, install Node.js dependencies, and start the development server:
+In a separate terminal:
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
+
+- Backend: http://127.0.0.1:8000
+- Frontend: http://localhost:5173
+- API docs: http://127.0.0.1:8000/docs
+
+### Environment Variables
+
+Create a `.env` file in the project root for email notifications (optional — the app runs fine without it, emails just won't send):
+
+```env
+BREVO_API_KEY=your_brevo_api_key
+MAIL_FROM=your_verified_sender@example.com
+MAIL_FROM_NAME=CPMS
+```
+
+## Project Structure
+
+```
+CPMS-Control/
+├── ai_service/       # ML models and training notebooks
+├── backend/          # FastAPI application
+├── database/         # Schema, seed data, and migrations
+├── frontend/         # React + Vite dashboard
+└── requirements.txt
+```
+
+## License
+
+This project was built for educational purposes.
